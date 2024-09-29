@@ -14,15 +14,21 @@ const client = getDatabaseConnection();
 // middleware that is specific to this router
 const timeLog = (req, res, next) => {
   console.log('Time: ', new Date().toString())
+  
   next()
 }
 router.use(timeLog)
 
-// define the home page route
 router.get('/', (req, res) => {
-  res.send('Messages')
+  getMessages().then((messages) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 200;
+    console.log("messages", messages);
+    
+    res.end(JSON.stringify(messages));
+  });
 })
-// define the about route
+
 router.post('/', (req, res) => {
   console.log("req", req.body);
   createMessage(req.body).then((result) => {
@@ -33,6 +39,19 @@ router.post('/', (req, res) => {
   });
 })
 
+async function getMessages() {
+  try {
+    // Connect the client to the server (optional starting in v4.7)
+    await client.connect();
+    const messages = await client.db(dbName).collection(messageCollection).find().toArray();
+    console.log("result object", messages);
+    
+    return messages;
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+}
 async function createMessage(message) {
     try {
       // Connect the client to the server (optional starting in v4.7)
