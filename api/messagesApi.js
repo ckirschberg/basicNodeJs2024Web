@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const getDatabaseConnection = require('../utils.js')
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const mongoose = require('mongoose');
+const Message = require('../schemas/Message.js'); // Message is a mongoose model
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -10,6 +12,7 @@ const messageCollection = "messages"; // DRY - Don't Repeat Yourself
 
 const client = getDatabaseConnection();
 
+mongoose.connect('mongodb://127.0.0.1:27017/myDB');
 
 // middleware that is specific to this router
 const timeLog = (req, res, next) => {
@@ -19,24 +22,27 @@ const timeLog = (req, res, next) => {
 }
 router.use(timeLog)
 
-router.get('/', (req, res) => {
-  getMessages().then((messages) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = 200;
-    console.log("messages", messages);
+router.get('/', async (req, res) => {
+  const messages = await Message.find({});
+  res.status(200).json(messages);
+
+  // getMessages().then((messages) => {
+  //   res.setHeader('Content-Type', 'application/json');
+  //   res.statusCode = 200;
+  //   console.log("messages", messages);
     
-    res.end(JSON.stringify(messages));
-  });
+  //   res.end(JSON.stringify(messages));
+  // });
 })
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   console.log("req", req.body);
-  createMessage(req.body).then((result) => {
-    
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = 201;
-    res.end(JSON.stringify({ ...req.body, _id: result.insertedId }));
+  const message = new Message({
+    text: req.body.text,
+    timestamp: new Date()
   });
+  const result = await message.save();
+  res.status(201).json(result);
 })
 
 async function getMessages() {
