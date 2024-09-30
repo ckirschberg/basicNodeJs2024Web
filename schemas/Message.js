@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-    text: String,
+    text: {
+        type: String, 
+        required: "Text must be filled out"
+    },
     timestamp: Date
 });
 

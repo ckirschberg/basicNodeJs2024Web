@@ -36,13 +36,24 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  console.log("req", req.body);
-  const message = new Message({
-    text: req.body.text,
-    timestamp: new Date()
-  });
-  const result = await message.save();
-  res.status(201).json(result);
+  try {
+    // if (req.body.text !== "" && req.body.email !== "") { //manual validation
+      console.log("req", req.body);
+      const message = new Message({
+        text: req.body.text,
+        timestamp: new Date()
+      });
+
+      const result = await message.save();
+      console.log("result", result);
+      
+      res.status(201).json(result);
+    // }
+  } catch (error) {
+    console.log("error", error);
+    
+    res.status(500).json({ error });
+  }
 })
 
 async function getMessages() {
